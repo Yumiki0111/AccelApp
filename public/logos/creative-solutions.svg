@@ -1,0 +1,9 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="32" fill="#FF6B35"/>
+  <circle cx="26" cy="26" r="8" fill="white"/>
+  <circle cx="38" cy="26" r="8" fill="white" opacity="0.7"/>
+  <circle cx="32" cy="38" r="8" fill="white" opacity="0.85"/>
+  <path d="M22 44C22 41.7909 23.7909 40 26 40H38C40.2091 40 42 41.7909 42 44V46C42 47.1046 41.1046 48 40 48H24C22.8954 48 22 47.1046 22 46V44Z" fill="white"/>
+  <text x="32" y="30" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FF6B35" text-anchor="middle">CS</text>
+</svg>
+
