@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // ローカル画像のみ使用（public/logos/）
+  images: {
+    dangerouslyAllowSVG: true,
+  },
 };
 
 export default nextConfig;

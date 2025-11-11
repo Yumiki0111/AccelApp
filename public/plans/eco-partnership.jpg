@@ -1,0 +1,30 @@
+<svg width="400" height="200" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad5" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#27AE60;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#52C77E;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="200" fill="url(#grad5)"/>
+  
+  <!-- 地球 -->
+  <circle cx="120" cy="90" r="45" fill="#3498DB" opacity="0.9"/>
+  <path d="M100 70 Q110 85 100 100" stroke="#27AE60" stroke-width="8" fill="none" opacity="0.8"/>
+  <path d="M130 65 Q140 80 135 95" stroke="#27AE60" stroke-width="6" fill="none" opacity="0.8"/>
+  <circle cx="120" cy="90" r="45" fill="none" stroke="white" stroke-width="2" opacity="0.3"/>
+  
+  <!-- 植物/葉 -->
+  <ellipse cx="230" cy="90" rx="25" ry="40" fill="white" opacity="0.9" transform="rotate(-30 230 90)"/>
+  <ellipse cx="250" cy="85" rx="25" ry="40" fill="white" opacity="0.85" transform="rotate(30 250 85)"/>
+  <rect x="238" y="100" width="6" height="35" rx="3" fill="white" opacity="0.8"/>
+  
+  <!-- リサイクルマーク -->
+  <g transform="translate(300, 85)">
+    <path d="M0 -20 L-10 0 L-5 0 L-5 10 L5 10 L5 0 L10 0 Z" fill="white" opacity="0.9" transform="rotate(0)"/>
+    <path d="M0 -20 L-10 0 L-5 0 L-5 10 L5 10 L5 0 L10 0 Z" fill="white" opacity="0.9" transform="rotate(120)"/>
+    <path d="M0 -20 L-10 0 L-5 0 L-5 10 L5 10 L5 0 L10 0 Z" fill="white" opacity="0.9" transform="rotate(240)"/>
+  </g>
+  
+  <text x="200" y="175" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" text-anchor="middle">SDGs・環境イベント協賛</text>
+</svg>
+

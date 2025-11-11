@@ -2,16 +2,13 @@
 
 import { useState, useMemo } from "react";
 import Header from "@/components/Header";
-import SearchBar from "@/components/SearchBar";
-import FilterTabs from "@/components/FilterTabs";
-import CompanyCard from "@/components/CompanyCard";
+import TopFilters from "@/components/TopFilters";
+import FeaturedSidebar from "@/components/FeaturedSidebar";
+import CompanyListItem from "@/components/CompanyListItem";
 import CompanyDetailModal from "@/components/CompanyDetailModal";
 import SuccessModal from "@/components/SuccessModal";
 import {
   mockCompanies,
-  industryOptions,
-  sponsorshipTypeOptions,
-  regionOptions,
   sortOptions,
   Company,
 } from "@/lib/mockData";
@@ -30,26 +27,22 @@ export default function BrowseCompanyPage() {
   const [submittedCompanyName, setSubmittedCompanyName] = useState("");
 
   // フィルタ切り替え
-  const toggleFilter = (type: "industry" | "sponsorship" | "region", value: string) => {
-    const setters = {
-      industry: setSelectedIndustries,
-      sponsorship: setSelectedSponsorshipTypes,
-      region: setSelectedRegions,
-    };
-    const getters = {
-      industry: selectedIndustries,
-      sponsorship: selectedSponsorshipTypes,
-      region: selectedRegions,
-    };
+  const toggleIndustry = (value: string) => {
+    setSelectedIndustries((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
+  };
 
-    const current = getters[type];
-    const setter = setters[type];
+  const toggleSponsorshipType = (value: string) => {
+    setSelectedSponsorshipTypes((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
+  };
 
-    if (current.includes(value)) {
-      setter(current.filter((v) => v !== value));
-    } else {
-      setter([...current, value]);
-    }
+  const toggleRegion = (value: string) => {
+    setSelectedRegions((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
   };
 
   // フィルタ適用＆並び替え
@@ -94,7 +87,6 @@ export default function BrowseCompanyPage() {
     } else if (sortBy === "reviewCount") {
       result = [...result].sort((a, b) => b.reviewCount - a.reviewCount);
     }
-    // new は現状ランダムのまま
 
     return result;
   }, [keyword, selectedIndustries, selectedSponsorshipTypes, selectedRegions, sortBy]);
@@ -111,79 +103,84 @@ export default function BrowseCompanyPage() {
     <div className="min-h-screen bg-white">
       <Header />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* タイトル */}
-        <h1 className="text-3xl font-bold text-[#333333] mb-8">
-          協賛・共創できる企業を探す
-        </h1>
+      <div className="lg:max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+        <div className="flex flex-col xl:flex-row gap-6">
+          {/* メインコンテンツ */}
+          <main className="flex-1 space-y-6">
+            <TopFilters
+              selectedIndustries={selectedIndustries}
+              selectedSponsorshipTypes={selectedSponsorshipTypes}
+              selectedRegions={selectedRegions}
+              onToggleIndustry={toggleIndustry}
+              onToggleSponsorshipType={toggleSponsorshipType}
+              onToggleRegion={toggleRegion}
+            />
 
-        {/* 検索バー */}
-        <div className="mb-8">
-          <SearchBar value={keyword} onChange={setKeyword} />
-        </div>
+            {/* 検索バー＆並び替え */}
+            <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    placeholder="キーワードで検索"
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
+                    className="w-full px-4 py-3 border border-[#E6ECF3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] text-sm sm:text-base"
+                  />
+                </div>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="px-4 py-3 border border-[#E6ECF3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] text-sm sm:text-base"
+                >
+                  {sortOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-        {/* フィルタタブ */}
-        <div className="space-y-6 mb-8">
-          <FilterTabs
-            title="業界"
-            options={industryOptions}
-            selected={selectedIndustries}
-            onToggle={(v) => toggleFilter("industry", v)}
-          />
-          <FilterTabs
-            title="協賛タイプ"
-            options={sponsorshipTypeOptions}
-            selected={selectedSponsorshipTypes}
-            onToggle={(v) => toggleFilter("sponsorship", v)}
-          />
-          <FilterTabs
-            title="地域"
-            options={regionOptions}
-            selected={selectedRegions}
-            onToggle={(v) => toggleFilter("region", v)}
-          />
-        </div>
+            {/* 検索結果表示 */}
+            <div>
+              <p className="text-sm text-[#666666]">
+                検索結果 <span className="font-bold text-[#003366]">{filteredCompanies.length}件</span> 1〜{Math.min(filteredCompanies.length, 20)}件を表示中
+              </p>
+            </div>
 
-        {/* 並び替えドロップダウン */}
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-[#666666]">
-            {filteredCompanies.length} 件の企業が見つかりました
-          </p>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="px-4 py-2 border border-[#E6ECF3] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#003366]"
-          >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
+            {/* 企業リスト */}
+            {filteredCompanies.length > 0 ? (
+              <div className="space-y-4">
+                {filteredCompanies.map((company) => (
+                  <CompanyListItem
+                    key={company.id}
+                    company={company}
+                    onClick={() => setSelectedCompany(company)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg p-16 text-center">
+                <p className="text-[#666666] text-lg mb-2">
+                  条件に一致する企業が見つかりませんでした
+                </p>
+                <p className="text-[#666666] text-sm">
+                  別のキーワードやフィルタをお試しください
+                </p>
+              </div>
+            )}
+          </main>
 
-        {/* 企業カードグリッド */}
-        {filteredCompanies.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCompanies.map((company) => (
-              <CompanyCard
-                key={company.id}
-                company={company}
-                onClick={() => setSelectedCompany(company)}
-              />
-            ))}
+          {/* 右サイドバー（注目企業） */}
+          <div className="w-full xl:w-[280px] xl:flex-none">
+            <FeaturedSidebar
+              companies={mockCompanies.filter((c) => c.rating >= 4.8)}
+              onSelectCompany={setSelectedCompany}
+            />
           </div>
-        ) : (
-          <div className="text-center py-16">
-            <p className="text-[#666666] text-lg">
-              条件に一致する企業が見つかりませんでした
-            </p>
-            <p className="text-[#666666] text-sm mt-2">
-              別のキーワードやフィルタをお試しください
-            </p>
-          </div>
-        )}
-      </main>
+        </div>
+      </div>
 
       {/* 企業詳細モーダル */}
       {selectedCompany && (
@@ -204,4 +201,3 @@ export default function BrowseCompanyPage() {
     </div>
   );
 }
-

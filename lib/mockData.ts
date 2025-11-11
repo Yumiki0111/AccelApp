@@ -2,6 +2,7 @@ export interface Company {
   id: string;
   name: string;
   logoUrl: string;
+  heroImageUrl: string;
   industryTags: string[];
   rating: number;
   reviewCount: number;
@@ -36,6 +37,7 @@ export const mockCompanies: Company[] = [
     id: "1",
     name: "BluePeak Inc.",
     logoUrl: "/logos/bluepeak.svg",
+    heroImageUrl: "/company/bluepeak-team.svg",
     industryTags: ["IT", "人材", "教育"],
     rating: 4.9,
     reviewCount: 60,
@@ -46,7 +48,7 @@ export const mockCompanies: Company[] = [
     plan: {
       title: "大学連携の共同イベント協賛",
       summary: "学生団体の挑戦を応援する企業プラン",
-      imageUrl: "https://via.placeholder.com/400x200/E6ECF3/003366?text=Event",
+      imageUrl: "/plans/event-collaboration.jpg",
     },
     conditions: {
       cashSupport: { available: true, detail: "上限30万円まで" },
@@ -76,6 +78,7 @@ export const mockCompanies: Company[] = [
     id: "2",
     name: "クリエイティブソリューションズ",
     logoUrl: "/logos/creative-solutions.svg",
+    heroImageUrl: "/company/creative-solutions-team.svg",
     industryTags: ["広告", "デザイン", "メディア"],
     rating: 4.7,
     reviewCount: 42,
@@ -86,7 +89,7 @@ export const mockCompanies: Company[] = [
     plan: {
       title: "学生イベントの広報支援プラン",
       summary: "デザイン制作とSNS拡散をサポート",
-      imageUrl: "https://via.placeholder.com/400x200/FFE5D9/FF6B35?text=Creative",
+      imageUrl: "/plans/creative-support.jpg",
     },
     conditions: {
       cashSupport: { available: false, detail: "" },
@@ -110,6 +113,7 @@ export const mockCompanies: Company[] = [
     id: "3",
     name: "グローバルフーズ株式会社",
     logoUrl: "/logos/global-foods.svg",
+    heroImageUrl: "/company/global-foods-team.svg",
     industryTags: ["食品", "メーカー"],
     rating: 4.8,
     reviewCount: 35,
@@ -120,7 +124,7 @@ export const mockCompanies: Company[] = [
     plan: {
       title: "飲料・食品提供プラン",
       summary: "イベント参加者への飲料・軽食を無償提供",
-      imageUrl: "https://via.placeholder.com/400x200/C7F0DB/4ECDC4?text=Food",
+      imageUrl: "/plans/food-support.jpg",
     },
     conditions: {
       cashSupport: { available: false, detail: "" },
@@ -144,6 +148,7 @@ export const mockCompanies: Company[] = [
     id: "4",
     name: "テックイノベーション",
     logoUrl: "/logos/tech-innovation.svg",
+    heroImageUrl: "/company/tech-innovation-team.svg",
     industryTags: ["IT", "SaaS"],
     rating: 4.6,
     reviewCount: 28,
@@ -154,7 +159,7 @@ export const mockCompanies: Company[] = [
     plan: {
       title: "技術メンタリング＋ツール提供",
       summary: "開発ツール無償提供とエンジニアメンタリング",
-      imageUrl: "https://via.placeholder.com/400x200/E8DAEF/9B59B6?text=Tech",
+      imageUrl: "/plans/tech-mentoring.jpg",
     },
     conditions: {
       cashSupport: { available: true, detail: "最大10万円" },
@@ -178,6 +183,7 @@ export const mockCompanies: Company[] = [
     id: "5",
     name: "エコライフパートナーズ",
     logoUrl: "/logos/ecolife-partners.svg",
+    heroImageUrl: "/company/ecolife-partners-team.svg",
     industryTags: ["環境", "社会貢献"],
     rating: 4.9,
     reviewCount: 51,
@@ -188,7 +194,7 @@ export const mockCompanies: Company[] = [
     plan: {
       title: "社会貢献イベント協賛プラン",
       summary: "環境・社会課題に取り組む学生団体を支援",
-      imageUrl: "https://via.placeholder.com/400x200/D5F4E6/27AE60?text=Eco",
+      imageUrl: "/plans/eco-partnership.jpg",
     },
     conditions: {
       cashSupport: { available: true, detail: "上限50万円" },
@@ -212,6 +218,7 @@ export const mockCompanies: Company[] = [
     id: "6",
     name: "フィナンシャルブリッジ",
     logoUrl: "/logos/financial-bridge.svg",
+    heroImageUrl: "/company/financial-bridge-team.svg",
     industryTags: ["金融", "コンサルティング"],
     rating: 4.5,
     reviewCount: 38,
@@ -222,7 +229,7 @@ export const mockCompanies: Company[] = [
     plan: {
       title: "ビジネスコンテスト協賛",
       summary: "ビジコン・ケースコンペへの賞金提供",
-      imageUrl: "https://via.placeholder.com/400x200/FADBD8/E74C3C?text=Finance",
+      imageUrl: "/plans/business-contest.jpg",
     },
     conditions: {
       cashSupport: { available: true, detail: "賞金20万円" },
