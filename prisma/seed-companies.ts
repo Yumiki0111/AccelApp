@@ -11,7 +11,7 @@ async function main() {
     where: { type: 'industry' },
   });
 
-  const tagMap = new Map(tags.map((tag) => [tag.label, tag.id]));
+  const tagMap = new Map(tags.map((tag: { label: string; id: string }) => [tag.label, tag.id]));
 
   let createdCount = 0;
 
