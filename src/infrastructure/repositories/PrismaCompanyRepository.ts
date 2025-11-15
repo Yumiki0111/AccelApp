@@ -111,14 +111,14 @@ export class PrismaCompanyRepository implements CompanyRepository {
       },
     });
 
-    const companyListItems: CompanyListItem[] = companies.map((company) => {
+    const companyListItems: CompanyListItem[] = companies.map((company: any) => {
       const industryTags = company.companyTags
-        .filter((ct) => ct.tag.type === 'industry')
-        .map((ct) => ct.tag.label);
+        .filter((ct: any) => ct.tag.type === 'industry')
+        .map((ct: any) => ct.tag.label);
 
       const primaryPlan = company.sponsorshipPlans[0];
       const sponsorshipTypes = primaryPlan
-        ? primaryPlan.sponsorshipPlanTypes.map((spt) => spt.sponsorshipType)
+        ? primaryPlan.sponsorshipPlanTypes.map((spt: any) => spt.sponsorshipType)
         : [];
 
       return {
@@ -278,14 +278,14 @@ export class PrismaCompanyRepository implements CompanyRepository {
       },
     });
 
-    return companies.map((company) => {
+    return companies.map((company: any) => {
       const industryTags = company.companyTags
-        .filter((ct) => ct.tag.type === 'industry')
-        .map((ct) => ct.tag.label);
+        .filter((ct: any) => ct.tag.type === 'industry')
+        .map((ct: any) => ct.tag.label);
 
       const primaryPlan = company.sponsorshipPlans[0];
       const sponsorshipTypes = primaryPlan
-        ? primaryPlan.sponsorshipPlanTypes.map((spt) => spt.sponsorshipType)
+        ? primaryPlan.sponsorshipPlanTypes.map((spt: any) => spt.sponsorshipType)
         : [];
 
       return {
