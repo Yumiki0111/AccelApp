@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { getSession, logout, type User } from "@/lib/api/auth";
 // Headerコンポーネントでは、カウントは各ページで管理されるため、モックデータは不要
 
-export default function Header() {
+function HeaderContent() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -286,6 +286,26 @@ export default function Header() {
         </div>
       )}
     </>
+  );
+}
+
+export default function Header() {
+  return (
+    <Suspense fallback={
+      <header className="sticky top-0 z-50 bg-[#003366] shadow-sm">
+        <div className="lg:max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-[72px]">
+            <div className="flex items-center">
+              <Link href="/browse/company" className="text-2xl font-bold text-white">
+                Accel
+              </Link>
+            </div>
+          </div>
+        </div>
+      </header>
+    }>
+      <HeaderContent />
+    </Suspense>
   );
 }
 

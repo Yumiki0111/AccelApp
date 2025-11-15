@@ -46,28 +46,26 @@ export class PrismaCompanyRepository implements CompanyRepository {
       };
     }
 
-    // 協賛タイプフィルタ
-    if (sponsorshipTypes.length > 0) {
-      where.sponsorshipPlans = {
-        some: {
-          isActive: true,
-          sponsorshipPlanTypes: {
-            some: {
-              sponsorshipType: { in: sponsorshipTypes },
-            },
-          },
-        },
+    // 協賛タイプフィルタと地域フィルタ
+    if (sponsorshipTypes.length > 0 || regions.length > 0) {
+      const sponsorshipPlanConditions: any = {
+        isActive: true,
       };
-    }
 
-    // 地域フィルタ
-    if (regions.length > 0) {
+      if (sponsorshipTypes.length > 0) {
+        sponsorshipPlanConditions.sponsorshipPlanTypes = {
+          some: {
+            sponsorshipType: { in: sponsorshipTypes },
+          },
+        };
+      }
+
+      if (regions.length > 0) {
+        sponsorshipPlanConditions.coverageArea = { in: regions };
+      }
+
       where.sponsorshipPlans = {
-        ...where.sponsorshipPlans,
-        some: {
-          isActive: true,
-          coverageArea: { in: regions },
-        },
+        some: sponsorshipPlanConditions,
       };
     }
 

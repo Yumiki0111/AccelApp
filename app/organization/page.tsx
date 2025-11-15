@@ -13,7 +13,7 @@ import {
 } from "@/lib/api/organizations";
 import { getChatRooms, type ChatRoom } from "@/lib/api/chat";
 import { getSession, type User } from "@/lib/api/auth";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 
@@ -31,7 +31,7 @@ const statusLabel: Record<string, string> = {
 
 type TabType = "dashboard" | "messages" | "applied" | "kept" | "history";
 
-export default function OrganizationPage() {
+function OrganizationPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
@@ -748,6 +748,18 @@ export default function OrganizationPage() {
       </div>
       </main>
     </>
+  );
+}
+
+export default function OrganizationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-[#666666]">読み込み中...</div>
+      </div>
+    }>
+      <OrganizationPageContent />
+    </Suspense>
   );
 }
 

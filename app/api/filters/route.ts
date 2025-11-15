@@ -14,9 +14,14 @@ export async function GET() {
 
     return NextResponse.json(filters, { status: 200 });
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    
     logError(error instanceof Error ? error : new Error('Unknown error'), {
       endpoint: '/api/filters',
       method: 'GET',
+      errorMessage,
+      errorStack,
     });
 
     const friendlyMessage = getUserFriendlyMessage(
@@ -27,6 +32,7 @@ export async function GET() {
       { 
         error: friendlyMessage,
         code: error instanceof ApplicationError ? error.code : ErrorCode.INTERNAL_SERVER_ERROR,
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
       },
       { status: 500 }
     );

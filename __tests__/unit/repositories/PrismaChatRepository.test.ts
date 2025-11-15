@@ -23,7 +23,18 @@ jest.mock('@/src/infrastructure/database/prisma', () => ({
 
 describe('PrismaChatRepository', () => {
   let repository: PrismaChatRepository;
-  const mockPrisma = prisma as any;
+  const mockPrisma = prisma as unknown as {
+    chatRoom: {
+      findMany: jest.Mock;
+      findUnique: jest.Mock;
+      create: jest.Mock;
+      update: jest.Mock;
+    };
+    chatMessage: {
+      create: jest.Mock;
+      findMany: jest.Mock;
+    };
+  };
 
   beforeEach(() => {
     repository = new PrismaChatRepository();
@@ -45,11 +56,11 @@ describe('PrismaChatRepository', () => {
         },
       ];
 
-      (mockPrisma.chatRoom.findMany as jest.Mock).mockResolvedValue(mockRooms);
+      mockPrisma.chatRoom.findMany.mockResolvedValue(mockRooms);
 
       const result = await repository.findRoomsByOrganizationId('org-1');
 
-      expect(mockPrisma.chatRoom.findMany as jest.Mock).toHaveBeenCalledWith({
+      expect(mockPrisma.chatRoom.findMany).toHaveBeenCalledWith({
         where: { organizationId: 'org-1' },
         orderBy: { lastMessageAt: 'desc' },
         include: {
@@ -64,7 +75,7 @@ describe('PrismaChatRepository', () => {
     });
 
     it('チャットルームが存在しない場合は空配列を返す', async () => {
-      (mockPrisma.chatRoom.findMany as jest.Mock).mockResolvedValue([]);
+      mockPrisma.chatRoom.findMany.mockResolvedValue([]);
 
       const result = await repository.findRoomsByOrganizationId('org-1');
 
@@ -87,11 +98,11 @@ describe('PrismaChatRepository', () => {
         },
       ];
 
-      (mockPrisma.chatRoom.findMany as jest.Mock).mockResolvedValue(mockRooms);
+      mockPrisma.chatRoom.findMany.mockResolvedValue(mockRooms);
 
       const result = await repository.findRoomsByCompanyId('company-1');
 
-      expect(mockPrisma.chatRoom.findMany as jest.Mock).toHaveBeenCalledWith({
+      expect(mockPrisma.chatRoom.findMany).toHaveBeenCalledWith({
         where: { companyId: 'company-1' },
         orderBy: { lastMessageAt: 'desc' },
         include: {
@@ -118,11 +129,11 @@ describe('PrismaChatRepository', () => {
         messages: [],
       };
 
-      (mockPrisma.chatRoom.findUnique as jest.Mock).mockResolvedValue(mockRoom);
+      mockPrisma.chatRoom.findUnique.mockResolvedValue(mockRoom);
 
       const result = await repository.findRoomById('room-1');
 
-      expect(mockPrisma.chatRoom.findUnique as jest.Mock).toHaveBeenCalledWith({
+      expect(mockPrisma.chatRoom.findUnique).toHaveBeenCalledWith({
         where: { id: 'room-1' },
         include: {
           messages: {
@@ -135,7 +146,7 @@ describe('PrismaChatRepository', () => {
     });
 
     it('ルームが存在しない場合はnullを返す', async () => {
-      (mockPrisma.chatRoom.findUnique as jest.Mock).mockResolvedValue(null);
+      mockPrisma.chatRoom.findUnique.mockResolvedValue(null);
 
       const result = await repository.findRoomById('nonexistent-room');
 
@@ -164,12 +175,12 @@ describe('PrismaChatRepository', () => {
         createdAt: new Date(),
       };
 
-      (mockPrisma.chatMessage.create as jest.Mock).mockResolvedValue(mockMessage);
-      (mockPrisma.chatRoom.findUnique as jest.Mock).mockResolvedValue({
+      mockPrisma.chatMessage.create.mockResolvedValue(mockMessage);
+      mockPrisma.chatRoom.findUnique.mockResolvedValue({
         id: 'room-1',
         lastMessageAt: new Date(),
       });
-      (mockPrisma.chatRoom.update as jest.Mock) = jest.fn().mockResolvedValue({
+      mockPrisma.chatRoom.update.mockResolvedValue({
         id: 'room-1',
         organizationId: 'org-1',
         companyId: 'company-1',
@@ -180,7 +191,7 @@ describe('PrismaChatRepository', () => {
 
       const result = await repository.createMessage(params);
 
-      expect(mockPrisma.chatMessage.create as jest.Mock).toHaveBeenCalled();
+      expect(mockPrisma.chatMessage.create).toHaveBeenCalled();
       expect(result).toBeDefined();
       expect(result.id).toBe('message-1');
     });
