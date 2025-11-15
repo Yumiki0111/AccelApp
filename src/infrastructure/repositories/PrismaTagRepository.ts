@@ -8,7 +8,7 @@ export class PrismaTagRepository implements TagRepository {
       orderBy: { displayOrder: 'asc' },
     });
 
-    return tags.map((tag) => ({
+    return tags.map((tag: any) => ({
       id: tag.id,
       type: tag.type,
       label: tag.label,
@@ -21,7 +21,7 @@ export class PrismaTagRepository implements TagRepository {
       orderBy: [{ type: 'asc' }, { displayOrder: 'asc' }],
     });
 
-    return tags.map((tag) => ({
+    return tags.map((tag: any) => ({
       id: tag.id,
       type: tag.type,
       label: tag.label,

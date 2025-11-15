@@ -83,7 +83,7 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
       createdAt: organization.createdAt,
     };
 
-    const allMembers: OrganizationMember[] = organization.members.map((member) => {
+    const allMembers: OrganizationMember[] = organization.members.map((member: any) => {
       const profile = member.user.profile as { faculty?: string | null; department?: string | null; grade?: number | null; universityName?: string | null } | null;
       return {
         id: member.id,
@@ -98,8 +98,8 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
       };
     });
 
-    const members = allMembers.filter((m) => m.status === 'active');
-    const pendingRequests = allMembers.filter((m) => m.status === 'pending' || m.status === 'invited');
+    const members = allMembers.filter((m: OrganizationMember) => m.status === 'active');
+    const pendingRequests = allMembers.filter((m: OrganizationMember) => m.status === 'pending' || m.status === 'invited');
 
     return {
       profile,
@@ -120,7 +120,7 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
       },
     });
 
-    return members.map((member) => {
+    return members.map((member: any) => {
       const profile = member.user.profile as { faculty?: string | null; department?: string | null; grade?: number | null; universityName?: string | null } | null;
       return {
         id: member.id,

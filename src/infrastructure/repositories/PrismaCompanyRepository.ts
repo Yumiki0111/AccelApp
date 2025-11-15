@@ -197,12 +197,12 @@ export class PrismaCompanyRepository implements CompanyRepository {
     if (!company) return null;
 
     const industryTags = company.companyTags
-      .filter((ct) => ct.tag.type === 'industry')
-      .map((ct) => ct.tag.label);
+      .filter((ct: any) => ct.tag.type === 'industry')
+      .map((ct: any) => ct.tag.label);
 
     const primaryPlan = company.sponsorshipPlans[0];
     const sponsorshipTypes = primaryPlan
-      ? primaryPlan.sponsorshipPlanTypes.map((spt) => spt.sponsorshipType)
+      ? primaryPlan.sponsorshipPlanTypes.map((spt: any) => spt.sponsorshipType)
       : [];
 
     return {
@@ -243,7 +243,7 @@ export class PrismaCompanyRepository implements CompanyRepository {
       sponsorshipTypes,
       coverageArea: primaryPlan?.coverageArea || null,
       philosophy: company.philosophy,
-      achievements: company.achievements.map((achievement) => ({
+      achievements: company.achievements.map((achievement: any) => ({
         id: achievement.id,
         organizationName: achievement.organizationName,
         eventName: achievement.eventName,

@@ -7,7 +7,7 @@ export class PrismaRegionRepository implements RegionRepository {
       orderBy: { displayOrder: 'asc' },
     });
 
-    return regions.map((region) => ({
+    return regions.map((region: any) => ({
       id: region.id,
       code: region.code,
       name: region.name,

@@ -39,7 +39,7 @@ export class PrismaProposalRepository implements ProposalRepository {
       orderBy: { submittedAt: 'desc' },
     });
 
-    return proposals.map((proposal) => ({
+    return proposals.map((proposal: any) => ({
       id: proposal.id,
       organizationId: proposal.organizationId,
       companyId: proposal.companyId,
@@ -59,7 +59,7 @@ export class PrismaProposalRepository implements ProposalRepository {
       orderBy: { submittedAt: 'desc' },
     });
 
-    return proposals.map((proposal) => ({
+    return proposals.map((proposal: any) => ({
       id: proposal.id,
       organizationId: proposal.organizationId,
       companyId: proposal.companyId,
