@@ -26,7 +26,7 @@ export class GetOrganizationBrowsedCompaniesUseCase {
       take: 50, // 最新50件まで
     });
 
-    const companyIds = browsedCompanies.map((bc) => bc.companyId);
+    const companyIds = browsedCompanies.map((bc: { companyId: string }) => bc.companyId);
     const companies = await this.companyRepository.findByIds(companyIds);
     const companyMap = new Map(companies.map((c) => [c.id, c]));
 

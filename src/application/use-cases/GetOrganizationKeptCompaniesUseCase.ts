@@ -25,7 +25,7 @@ export class GetOrganizationKeptCompaniesUseCase {
       orderBy: { keptAt: 'desc' },
     });
 
-    const companyIds = keptCompanies.map((kc) => kc.companyId);
+    const companyIds = keptCompanies.map((kc: { companyId: string }) => kc.companyId);
     const companies = await this.companyRepository.findByIds(companyIds);
     const companyMap = new Map(companies.map((c) => [c.id, c]));
 
