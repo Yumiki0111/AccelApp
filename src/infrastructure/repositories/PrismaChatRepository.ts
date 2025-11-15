@@ -19,7 +19,7 @@ export class PrismaChatRepository implements ChatRepository {
       },
     });
 
-    return rooms.map((room) => this.mapChatRoom(room));
+    return rooms.map((room: any) => this.mapChatRoom(room));
   }
 
   async findRoomsByCompanyId(companyId: string): Promise<ChatRoom[]> {
@@ -34,7 +34,7 @@ export class PrismaChatRepository implements ChatRepository {
       },
     });
 
-    return rooms.map((room) => this.mapChatRoom(room));
+    return rooms.map((room: any) => this.mapChatRoom(room));
   }
 
   async findRoomById(id: string): Promise<ChatRoom | null> {
