@@ -1,17 +1,17 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Header from "@/components/Header";
 import TopFilters from "@/components/TopFilters";
 import FeaturedSidebar from "@/components/FeaturedSidebar";
 import CompanyListItem from "@/components/CompanyListItem";
-import CompanyDetailModal from "@/components/CompanyDetailModal";
-import SuccessModal from "@/components/SuccessModal";
-import {
-  mockCompanies,
-  sortOptions,
-  Company,
-} from "@/lib/mockData";
+import { searchCompanies, type CompanyListItem as CompanyListItemType } from "@/lib/api/companies";
+
+const sortOptions = [
+  { value: "rating", label: "評価順" },
+  { value: "new", label: "新着順" },
+  { value: "reviewCount", label: "レビュー数順" },
+] as const;
 
 export default function BrowseCompanyPage() {
   // 検索・フィルタ状態
@@ -19,12 +19,14 @@ export default function BrowseCompanyPage() {
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
   const [selectedSponsorshipTypes, setSelectedSponsorshipTypes] = useState<string[]>([]);
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState("rating");
-
-  // モーダル状態
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [submittedCompanyName, setSubmittedCompanyName] = useState("");
+  const [sortBy, setSortBy] = useState<"rating" | "new" | "reviewCount">("rating");
+  
+  // データ状態
+  const [companies, setCompanies] = useState<CompanyListItemType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
 
   // フィルタ切り替え
   const toggleIndustry = (value: string) => {
@@ -45,59 +47,35 @@ export default function BrowseCompanyPage() {
     );
   };
 
-  // フィルタ適用＆並び替え
-  const filteredCompanies = useMemo(() => {
-    let result = mockCompanies;
+  // APIから企業データを取得
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const result = await searchCompanies({
+          keyword: keyword || undefined,
+          industries: selectedIndustries.length > 0 ? selectedIndustries : undefined,
+          sponsorshipTypes: selectedSponsorshipTypes.length > 0 ? selectedSponsorshipTypes : undefined,
+          regions: selectedRegions.length > 0 ? selectedRegions : undefined,
+          sort: sortBy,
+          page,
+          limit: 20,
+        });
+        
+        setCompanies(result.companies);
+        setTotal(result.total);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '企業データの取得に失敗しました');
+        console.error('企業データの取得エラー:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // キーワード検索
-    if (keyword) {
-      const lowerKeyword = keyword.toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.name.toLowerCase().includes(lowerKeyword) ||
-          c.plan.title.toLowerCase().includes(lowerKeyword) ||
-          c.plan.summary.toLowerCase().includes(lowerKeyword)
-      );
-    }
-
-    // 業界フィルタ
-    if (selectedIndustries.length > 0) {
-      result = result.filter((c) =>
-        c.industryTags.some((tag) => selectedIndustries.includes(tag))
-      );
-    }
-
-    // 協賛タイプフィルタ
-    if (selectedSponsorshipTypes.length > 0) {
-      result = result.filter((c) =>
-        c.sponsorshipTypes.some((type) => selectedSponsorshipTypes.includes(type))
-      );
-    }
-
-    // 地域フィルタ
-    if (selectedRegions.length > 0) {
-      result = result.filter((c) =>
-        selectedRegions.some((region) => c.coverageArea.includes(region))
-      );
-    }
-
-    // 並び替え
-    if (sortBy === "rating") {
-      result = [...result].sort((a, b) => b.rating - a.rating);
-    } else if (sortBy === "reviewCount") {
-      result = [...result].sort((a, b) => b.reviewCount - a.reviewCount);
-    }
-
-    return result;
-  }, [keyword, selectedIndustries, selectedSponsorshipTypes, selectedRegions, sortBy]);
-
-  // 提案送信
-  const handleSubmitProposal = (message: string) => {
-    console.log("提案送信:", selectedCompany?.name, message);
-    setSubmittedCompanyName(selectedCompany?.name || "");
-    setSelectedCompany(null);
-    setShowSuccessModal(true);
-  };
+    fetchCompanies();
+  }, [keyword, selectedIndustries, selectedSponsorshipTypes, selectedRegions, sortBy, page]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -130,7 +108,7 @@ export default function BrowseCompanyPage() {
                 </div>
                 <select
                   value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={(e) => setSortBy(e.target.value as "rating" | "new" | "reviewCount")}
                   className="px-4 py-3 border border-[#E6ECF3] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#003366] text-sm sm:text-base"
                 >
                   {sortOptions.map((option) => (
@@ -145,22 +123,38 @@ export default function BrowseCompanyPage() {
             {/* 検索結果表示 */}
             <div>
               <p className="text-sm text-[#666666]">
-                検索結果 <span className="font-bold text-[#003366]">{filteredCompanies.length}件</span> 1〜{Math.min(filteredCompanies.length, 20)}件を表示中
+                検索結果 <span className="font-bold text-[#003366]">{total}件</span> {companies.length > 0 ? `1〜${companies.length}件を表示中` : ''}
               </p>
             </div>
 
+            {/* エラー表示 */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-800">{error}</p>
+              </div>
+            )}
+
+            {/* ローディング表示 */}
+            {loading && (
+              <div className="bg-white rounded-lg p-16 text-center">
+                <p className="text-[#666666] text-lg">読み込み中...</p>
+              </div>
+            )}
+
             {/* 企業リスト */}
-            {filteredCompanies.length > 0 ? (
+            {!loading && !error && companies.length > 0 && (
               <div className="space-y-4">
-                {filteredCompanies.map((company) => (
+                {companies.map((company) => (
                   <CompanyListItem
                     key={company.id}
                     company={company}
-                    onClick={() => setSelectedCompany(company)}
                   />
                 ))}
               </div>
-            ) : (
+            )}
+
+            {/* 結果なし */}
+            {!loading && !error && companies.length === 0 && (
               <div className="bg-white rounded-lg p-16 text-center">
                 <p className="text-[#666666] text-lg mb-2">
                   条件に一致する企業が見つかりませんでした
@@ -175,29 +169,11 @@ export default function BrowseCompanyPage() {
           {/* 右サイドバー（注目企業） */}
           <div className="w-full xl:w-[280px] xl:flex-none">
             <FeaturedSidebar
-              companies={mockCompanies.filter((c) => c.rating >= 4.8)}
-              onSelectCompany={setSelectedCompany}
+              companies={companies.filter((c) => c.rating >= 4.8)}
             />
           </div>
         </div>
       </div>
-
-      {/* 企業詳細モーダル */}
-      {selectedCompany && (
-        <CompanyDetailModal
-          company={selectedCompany}
-          onClose={() => setSelectedCompany(null)}
-          onSubmitProposal={handleSubmitProposal}
-        />
-      )}
-
-      {/* 送信完了モーダル */}
-      {showSuccessModal && (
-        <SuccessModal
-          companyName={submittedCompanyName}
-          onClose={() => setShowSuccessModal(false)}
-        />
-      )}
     </div>
   );
 }

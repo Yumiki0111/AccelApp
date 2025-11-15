@@ -1,17 +1,28 @@
 "use client";
 
-import { Company } from "@/lib/mockData";
+import { type CompanyListItem } from "@/lib/api/companies";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface CompanyCardProps {
-  company: Company;
-  onClick: () => void;
+  company: CompanyListItem;
+  onClick?: () => void;
 }
 
 export default function CompanyCard({ company, onClick }: CompanyCardProps) {
+  const router = useRouter();
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      router.push(`/browse/company/${company.id}`);
+    }
+  };
+
   return (
     <div
-      onClick={onClick}
+      onClick={handleClick}
       className="bg-white rounded-2xl shadow-sm hover:shadow-lg hover:-translate-y-1 cursor-pointer overflow-hidden transition-all border border-slate-200/60"
     >
       {/* タグ帯 */}
@@ -27,69 +38,66 @@ export default function CompanyCard({ company, onClick }: CompanyCardProps) {
       </div>
 
       {/* ヒーロー画像 */}
-      <div className="relative h-36 sm:h-40 w-full">
-        <Image
-          src={company.heroImageUrl}
-          alt={`${company.name} hero`}
-          fill
-          className="object-cover"
-          sizes="(max-width: 640px) 100vw, 500px"
-        />
+      <div className="relative h-36 sm:h-40 w-full bg-[#E6ECF3]">
+        {company.heroImageUrl ? (
+          <Image
+            src={company.heroImageUrl}
+            alt={`${company.name} hero`}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, 500px"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-[#666666] text-sm">
+            画像なし
+          </div>
+        )}
       </div>
 
       {/* 本文エリア */}
       <div className="px-4 sm:px-6 py-5 sm:py-6 space-y-4">
         {/* 企業情報 */}
         <div className="flex items-start gap-3 sm:gap-4">
-          <Image
-            src={company.logoUrl}
-            alt={company.name}
-            width={52}
-            height={52}
-            className="rounded-full border border-slate-200"
-          />
+          {company.logoUrl ? (
+            <Image
+              src={company.logoUrl}
+              alt={company.name}
+              width={52}
+              height={52}
+              className="rounded-full border border-slate-200"
+            />
+          ) : (
+            <div className="w-[52px] h-[52px] rounded-full bg-[#E6ECF3] flex items-center justify-center border border-slate-200">
+              <span className="text-[#003366] font-semibold text-xs">ロゴ</span>
+            </div>
+          )}
           <div className="flex-1 min-w-0 space-y-1">
             <h3 className="text-sm sm:text-lg font-bold text-[#1F2A44] truncate">
               {company.name}
             </h3>
-            <p className="text-xs sm:text-sm text-[#6B7A93] truncate">
-              {company.contact.name} ・ {company.contact.role}
-            </p>
-            <div className="flex items-center gap-2 mt-1">
-              <div className="flex items-center gap-1">
-                <span className="text-yellow-500 text-xs sm:text-sm">★</span>
-                <span className="text-xs sm:text-sm font-semibold text-[#1F2A44]">
-                  {company.rating.toFixed(1)}
-                </span>
-              </div>
-              <span className="text-[10px] sm:text-xs text-[#6B7A93]">
-                口コミ {company.reviewCount}件
-              </span>
-            </div>
           </div>
         </div>
 
-        {/* プラン情報 */}
+        {/* どんなことに取り組んでいるか */}
         <div className="space-y-2">
-          <h4 className="text-sm sm:text-base font-semibold text-[#1F2A44] leading-snug line-clamp-2">
-            {company.plan.title}
+          <h4 className="text-xs sm:text-sm font-semibold text-[#666666]">
+            どんなことに取り組んでいるか
           </h4>
           <p className="text-xs sm:text-sm text-[#6B7A93] leading-relaxed line-clamp-2">
-            {company.plan.summary}
+            {company.plan.summary || '説明がありません'}
           </p>
         </div>
-
-        <div className="flex flex-wrap gap-3 text-xs text-[#6B7A93]">
-          <span className="flex items-center gap-1">
-            💰 {company.conditions.cashSupport.available ? company.conditions.cashSupport.detail : "応相談"}
-          </span>
-          <span className="flex items-center gap-1">
-            🤝 {company.conditions.cohostEvent.available ? "共催可能" : "共催なし"}
-          </span>
-          <span className="flex items-center gap-1">
-            🗺️ {company.coverageArea}
-          </span>
-        </div>
+        
+        {company.coverageArea && (
+          <div className="space-y-2">
+            <h4 className="text-xs sm:text-sm font-semibold text-[#666666]">
+              対応エリア
+            </h4>
+            <p className="text-xs sm:text-sm text-[#6B7A93] leading-relaxed">
+              {company.coverageArea}
+            </p>
+          </div>
+        )}
 
         {/* CTA */}
         <div className="space-y-2">

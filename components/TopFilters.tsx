@@ -1,11 +1,7 @@
 "use client";
 
-import {
-  industryOptions,
-  sponsorshipTypeOptions,
-  regionOptions,
-} from "@/lib/mockData";
-import { useMemo, useState } from "react";
+import { getFilters } from "@/lib/api/filters";
+import { useMemo, useState, useEffect } from "react";
 
 interface TopFiltersProps {
   selectedIndustries: string[];
@@ -30,47 +26,75 @@ export default function TopFilters({
   onToggleRegion,
 }: TopFiltersProps) {
   const [activeFilter, setActiveFilter] = useState<FilterKey | null>(null);
+  const [filterOptions, setFilterOptions] = useState<{
+    industries: { id: string; label: string }[];
+    sponsorshipTypes: { value: string; label: string }[];
+    regions: { id: string; code: string; name: string }[];
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getFilters()
+      .then(setFilterOptions)
+      .catch((error) => {
+        console.error('フィルタの取得に失敗しました:', error);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
   const filters = useMemo(
-    () => [
-      {
-        key: "region" as FilterKey,
-        title: "エリア",
-        icon: "📍",
-        options: regionOptions,
-        selected: selectedRegions,
-        toggle: onToggleRegion,
-      },
-      {
-        key: "sponsorship" as FilterKey,
-        title: "協賛タイプ",
-        icon: "🤝",
-        options: sponsorshipTypeOptions,
-        selected: selectedSponsorshipTypes,
-        toggle: onToggleSponsorshipType,
-      },
-      {
-        key: "industry" as FilterKey,
-        title: "業種",
-        icon: "🏢",
-        options: industryOptions,
-        selected: selectedIndustries,
-        toggle: onToggleIndustry,
-      },
-    ],
-    [
-      selectedIndustries,
-      selectedSponsorshipTypes,
-      selectedRegions,
-      onToggleIndustry,
-      onToggleSponsorshipType,
-      onToggleRegion,
-    ]
+    () => {
+      if (!filterOptions) return [];
+      
+      return [
+        {
+          key: "region" as FilterKey,
+          title: "エリア",
+          icon: "📍",
+          options: filterOptions.regions.map((r) => r.name),
+          selected: selectedRegions,
+          toggle: onToggleRegion,
+        },
+        {
+          key: "sponsorship" as FilterKey,
+          title: "協賛タイプ",
+          icon: "🤝",
+          options: filterOptions.sponsorshipTypes.map((t) => t.value),
+          selected: selectedSponsorshipTypes,
+          toggle: onToggleSponsorshipType,
+        },
+        {
+          key: "industry" as FilterKey,
+          title: "業種",
+          icon: "🏢",
+          options: filterOptions.industries.map((i) => i.label),
+          selected: selectedIndustries,
+          toggle: onToggleIndustry,
+        },
+      ];
+    },
+    [filterOptions, selectedIndustries, selectedSponsorshipTypes, selectedRegions, onToggleIndustry, onToggleSponsorshipType, onToggleRegion]
   );
 
   const activeFilterData = activeFilter
     ? filters.find((filter) => filter.key === activeFilter)
     : null;
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200 p-4">
+        <div className="text-center text-[#666666]">フィルタを読み込み中...</div>
+      </div>
+    );
+  }
+
+  if (!filterOptions) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200 p-4">
+        <div className="text-center text-red-600">フィルタの読み込みに失敗しました</div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -157,7 +181,7 @@ export default function TopFilters({
 
             <div className="max-h-[320px] overflow-y-auto pr-1">
               <div className="flex flex-wrap gap-2">
-                {activeFilterData.options.map((option) => {
+                {activeFilterData.options.map((option: string) => {
                   const isSelected = activeFilterData.selected.includes(option);
                   return (
                     <button
@@ -191,4 +215,3 @@ export default function TopFilters({
     </>
   );
 }
-

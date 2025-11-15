@@ -1,0 +1,502 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ユーザー管理
+// ============================================
+
+model User {
+  id            String     @id @default(uuid()) @db.Uuid
+  email         String     @unique @db.VarChar(255)
+  passwordHash  String     @map("password_hash") @db.VarChar(255)
+  name          String     @db.VarChar(100)
+  userType      UserType   @map("user_type")
+  emailVerified Boolean    @default(false) @map("email_verified")
+  status        UserStatus @default(pending)
+  lastActiveAt  DateTime?  @map("last_active_at") @db.Timestamptz(6)
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt     DateTime?  @map("deleted_at") @db.Timestamptz(6)
+
+  // Relations
+  profile             UserProfile?
+  companyContacts     CompanyContact[]
+  organizationMembers OrganizationMember[]
+  proposalsSubmitted  Proposal[]           @relation("ProposalSubmittedBy")
+  proposalsReviewed   Proposal[]           @relation("ProposalReviewedBy")
+  organizations       Organization[]
+  sessions            Session[]
+
+  @@index([email], name: "idx_users_email")
+  @@index([status], name: "idx_users_status")
+  @@index([userType], name: "idx_users_type")
+  @@map("users")
+}
+
+model UserProfile {
+  userId          String   @id @map("user_id") @db.Uuid
+  universityEmail String?  @unique @map("university_email") @db.VarChar(255)
+  universityName  String?  @map("university_name") @db.VarChar(100)
+  faculty         String?  @map("faculty") @db.VarChar(100)
+  department      String?  @map("department") @db.VarChar(100)
+  grade           Int?     @map("grade")
+  phone           String?  @db.VarChar(20)
+  avatarUrl       String?  @map("avatar_url") @db.VarChar(500)
+  bio             String?  @db.Text
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+enum UserType {
+  company
+  organization
+
+  @@map("user_type")
+}
+
+enum UserStatus {
+  active
+  pending
+  invited
+  suspended
+
+  @@map("user_status")
+}
+
+// ============================================
+// 学生団体管理
+// ============================================
+
+model Organization {
+  id                   String    @id @default(uuid()) @db.Uuid
+  name                 String    @db.VarChar(200)
+  tagline              String?   @db.VarChar(300)
+  description          String?   @db.Text
+  joinCode             String    @unique @map("join_code") @db.VarChar(20)
+  campus               String?   @db.VarChar(100)
+  representativeUserId String?   @map("representative_user_id") @db.Uuid
+  contactEmail         String    @map("contact_email") @db.VarChar(255)
+  contactPhone         String?   @map("contact_phone") @db.VarChar(20)
+  logoUrl              String?   @map("logo_url") @db.VarChar(500)
+  createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt            DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt            DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  // Relations
+  representative   User?                @relation(fields: [representativeUserId], references: [id])
+  members          OrganizationMember[]
+  proposals        Proposal[]
+  chatRooms        ChatRoom[]
+  keptCompanies    KeptCompany[]
+  browsedCompanies BrowsedCompany[]
+
+  @@index([joinCode], name: "idx_organizations_join_code")
+  @@index([representativeUserId], name: "idx_organizations_representative")
+  @@index([deletedAt], name: "idx_organizations_deleted")
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  id             String                   @id @default(uuid()) @db.Uuid
+  organizationId String                   @map("organization_id") @db.Uuid
+  userId         String                   @map("user_id") @db.Uuid
+  role           OrganizationRole
+  status         OrganizationMemberStatus
+  joinedAt       DateTime?                @map("joined_at") @db.Timestamptz(6)
+  createdAt      DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId, userId], name: "idx_org_members_org_user")
+  @@index([status], name: "idx_org_members_status")
+  @@map("organization_members")
+}
+
+enum OrganizationRole {
+  代表
+  副代表
+  広報
+  財務
+  メンバー
+
+  @@map("organization_role")
+}
+
+enum OrganizationMemberStatus {
+  active
+  pending
+  invited
+
+  @@map("organization_member_status")
+}
+
+// ============================================
+// 企業管理
+// ============================================
+
+model Company {
+  id               String    @id @default(uuid()) @db.Uuid
+  name             String    @db.VarChar(200)
+  logoUrl          String?   @map("logo_url") @db.VarChar(500)
+  heroImageUrl     String?   @map("hero_image_url") @db.VarChar(500)
+  philosophy       String?   @db.Text
+  ratingScore      Decimal   @default(0.00) @map("rating_score") @db.Decimal(3, 2)
+  ratingCount      Int       @default(0) @map("rating_count")
+  primaryContactId String?   @unique @map("primary_contact_id") @db.Uuid
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz(6)
+
+  // Relations
+  primaryContact       CompanyContact?       @relation("CompanyPrimaryContact", fields: [primaryContactId], references: [id])
+  contacts             CompanyContact[]      @relation("CompanyContacts")
+  companyTags          CompanyTag[]
+  sponsorshipPlans     SponsorshipPlan[]
+  sponsorshipCondition SponsorshipCondition?
+  achievements         Achievement[]
+  proposals            Proposal[]
+  chatRooms            ChatRoom[]
+  keptCompanies        KeptCompany[]
+  browsedCompanies     BrowsedCompany[]
+
+  @@index([ratingScore(desc), ratingCount(desc)], name: "idx_companies_rating")
+  @@index([createdAt(desc)], name: "idx_companies_created")
+  @@index([deletedAt], name: "idx_companies_deleted")
+  @@index([name], name: "idx_companies_name")
+  @@map("companies")
+}
+
+model CompanyContact {
+  id        String   @id @default(uuid()) @db.Uuid
+  companyId String   @map("company_id") @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  name      String   @db.VarChar(100)
+  role      String   @db.VarChar(100)
+  email     String?  @db.VarChar(255)
+  phone     String?  @db.VarChar(20)
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  company           Company       @relation("CompanyContacts", fields: [companyId], references: [id], onDelete: Cascade)
+  primaryContactFor Company?      @relation("CompanyPrimaryContact")
+  user              User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  chatMessages      ChatMessage[]
+
+  @@index([companyId], name: "idx_company_contacts_company")
+  @@index([companyId, isPrimary], name: "idx_company_contacts_primary")
+  @@index([userId], name: "idx_company_contacts_user")
+  @@map("company_contacts")
+}
+
+model Tag {
+  id           String   @id @default(uuid()) @db.Uuid
+  type         TagType
+  label        String   @db.VarChar(100)
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  companyTags CompanyTag[]
+
+  @@unique([type, label])
+  @@index([type, displayOrder], name: "idx_tags_type")
+  @@map("tags")
+}
+
+enum TagType {
+  industry
+  feature
+  university
+
+  @@map("tag_type")
+}
+
+model CompanyTag {
+  companyId String   @map("company_id") @db.Uuid
+  tagId     String   @map("tag_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([companyId, tagId])
+  @@index([companyId], name: "idx_company_tags_company")
+  @@index([tagId], name: "idx_company_tags_tag")
+  @@map("company_tags")
+}
+
+// ============================================
+// 協賛プラン・条件管理
+// ============================================
+
+model SponsorshipPlan {
+  id           String   @id @default(uuid()) @db.Uuid
+  companyId    String   @map("company_id") @db.Uuid
+  title        String   @db.VarChar(200)
+  summary      String?  @db.Text
+  imageUrl     String?  @map("image_url") @db.VarChar(500)
+  coverageArea String?  @map("coverage_area") @db.VarChar(100)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  company              Company               @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  sponsorshipPlanTypes SponsorshipPlanType[]
+  proposals            Proposal[]
+
+  @@index([companyId, isActive], name: "idx_sponsorship_plans_company")
+  @@map("sponsorship_plans")
+}
+
+model SponsorshipPlanType {
+  planId          String          @map("plan_id") @db.Uuid
+  sponsorshipType SponsorshipType
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  plan SponsorshipPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@id([planId, sponsorshipType])
+  @@map("sponsorship_plan_types")
+}
+
+enum SponsorshipType {
+  金銭協賛
+  物品提供
+  メンタリング
+  イベント共催
+
+  @@map("sponsorship_type")
+}
+
+model SponsorshipCondition {
+  companyId             String   @id @map("company_id") @db.Uuid
+  cashSupportAvailable  Boolean  @default(false) @map("cash_support_available")
+  cashSupportDetail     String?  @map("cash_support_detail") @db.Text
+  goodsSupportAvailable Boolean  @default(false) @map("goods_support_available")
+  goodsSupportDetail    String?  @map("goods_support_detail") @db.Text
+  mentoringAvailable    Boolean  @default(false) @map("mentoring_available")
+  mentoringDetail       String?  @map("mentoring_detail") @db.Text
+  cohostEventAvailable  Boolean  @default(false) @map("cohost_event_available")
+  cohostEventDetail     String?  @map("cohost_event_detail") @db.Text
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("sponsorship_conditions")
+}
+
+// ============================================
+// 実績管理
+// ============================================
+
+model Achievement {
+  id               String    @id @default(uuid()) @db.Uuid
+  companyId        String    @map("company_id") @db.Uuid
+  organizationName String    @map("organization_name") @db.VarChar(200)
+  eventName        String    @map("event_name") @db.VarChar(200)
+  description      String?   @db.Text
+  logoUrl          String?   @map("logo_url") @db.VarChar(500)
+  achievementDate  DateTime? @map("achievement_date") @db.Date
+  displayOrder     Int       @default(0) @map("display_order")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, displayOrder], name: "idx_achievements_company")
+  @@map("achievements")
+}
+
+// ============================================
+// 提携申込管理
+// ============================================
+
+model Proposal {
+  id                String         @id @default(uuid()) @db.Uuid
+  organizationId    String         @map("organization_id") @db.Uuid
+  companyId         String         @map("company_id") @db.Uuid
+  planId            String?        @map("plan_id") @db.Uuid
+  message           String         @db.Text
+  status            ProposalStatus
+  submittedByUserId String?        @map("submitted_by_user_id") @db.Uuid
+  submittedAt       DateTime       @default(now()) @map("submitted_at") @db.Timestamptz(6)
+  reviewedAt        DateTime?      @map("reviewed_at") @db.Timestamptz(6)
+  reviewedByUserId  String?        @map("reviewed_by_user_id") @db.Uuid
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  company      Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  plan         SponsorshipPlan? @relation(fields: [planId], references: [id])
+  submittedBy  User?            @relation("ProposalSubmittedBy", fields: [submittedByUserId], references: [id])
+  reviewedBy   User?            @relation("ProposalReviewedBy", fields: [reviewedByUserId], references: [id])
+  chatRoom     ChatRoom?
+
+  @@unique([organizationId, companyId, planId])
+  @@index([organizationId, status], name: "idx_proposals_organization")
+  @@index([companyId, status], name: "idx_proposals_company")
+  @@index([submittedAt(desc)], name: "idx_proposals_submitted")
+  @@map("proposals")
+}
+
+enum ProposalStatus {
+  申請済み
+  審査中
+  承認済み
+  却下
+
+  @@map("proposal_status")
+}
+
+// ============================================
+// チャット管理
+// ============================================
+
+model ChatRoom {
+  id                      String    @id @default(uuid()) @db.Uuid
+  organizationId          String    @map("organization_id") @db.Uuid
+  companyId               String    @map("company_id") @db.Uuid
+  proposalId              String?   @unique @map("proposal_id") @db.Uuid
+  lastMessageAt           DateTime? @map("last_message_at") @db.Timestamptz(6)
+  organizationUnreadCount Int       @default(0) @map("organization_unread_count")
+  companyUnreadCount      Int       @default(0) @map("company_unread_count")
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt               DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Relations
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  company      Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  proposal     Proposal?     @relation(fields: [proposalId], references: [id])
+  messages     ChatMessage[]
+
+  @@unique([organizationId, companyId])
+  @@index([organizationId, lastMessageAt(desc)], name: "idx_chat_rooms_org")
+  @@index([companyId, lastMessageAt(desc)], name: "idx_chat_rooms_company")
+  @@map("chat_rooms")
+}
+
+model ChatMessage {
+  id              String         @id @default(uuid()) @db.Uuid
+  chatRoomId      String         @map("chat_room_id") @db.Uuid
+  senderType      ChatSenderType @map("sender_type")
+  senderUserId    String?        @map("sender_user_id") @db.Uuid
+  senderContactId String?        @map("sender_contact_id") @db.Uuid
+  message         String         @db.Text
+  read            Boolean        @default(false)
+  readAt          DateTime?      @map("read_at") @db.Timestamptz(6)
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  chatRoom      ChatRoom        @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  senderContact CompanyContact? @relation(fields: [senderContactId], references: [id])
+
+  @@index([chatRoomId, createdAt(desc)], name: "idx_chat_messages_room")
+  @@index([chatRoomId, read], name: "idx_chat_messages_unread")
+  @@map("chat_messages")
+}
+
+enum ChatSenderType {
+  user
+  company
+
+  @@map("chat_sender_type")
+}
+
+// ============================================
+// ユーザーアクション管理
+// ============================================
+
+model KeptCompany {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  companyId      String   @map("company_id") @db.Uuid
+  keptAt         DateTime @default(now()) @map("kept_at") @db.Timestamptz(6)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, companyId])
+  @@index([organizationId, keptAt(desc)], name: "idx_kept_companies_org")
+  @@map("kept_companies")
+}
+
+model BrowsedCompany {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  companyId      String   @map("company_id") @db.Uuid
+  browsedAt      DateTime @default(now()) @map("browsed_at") @db.Timestamptz(6)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  company      Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, browsedAt(desc)], name: "idx_browsed_companies_org")
+  @@index([companyId, browsedAt(desc)], name: "idx_browsed_companies_company")
+  @@map("browsed_companies")
+}
+
+// ============================================
+// 地域マスタ
+// ============================================
+
+model Region {
+  id           String   @id @default(uuid()) @db.Uuid
+  code         String   @unique @db.VarChar(50)
+  name         String   @db.VarChar(100)
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([displayOrder], name: "idx_regions_display_order")
+  @@map("regions")
+}
+
+// ============================================
+// 認証・セッション管理
+// ============================================
+
+model Session {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  sessionToken String   @unique @map("session_token") @db.VarChar(255)
+  expiresAt    DateTime @map("expires_at") @db.Timestamptz(6)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([sessionToken], name: "idx_sessions_token")
+  @@index([userId], name: "idx_sessions_user")
+  @@index([expiresAt], name: "idx_sessions_expires")
+  @@map("sessions")
+}

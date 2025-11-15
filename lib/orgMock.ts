@@ -5,6 +5,10 @@ export interface OrganizationMember {
   email: string;
   status: "active" | "pending" | "invited";
   lastActive: string;
+  university?: string;
+  faculty?: string;
+  department?: string;
+  grade?: number;
 }
 
 export interface SponsorshipSummary {
@@ -40,6 +44,7 @@ export interface OrganizationProfile {
   description: string;
   joinCode: string;
   campus: string;
+  logoUrl?: string;
   createdAt: string;
   contacts: {
     representative: string;
@@ -72,6 +77,7 @@ export const mockOrganizationDashboard: OrganizationDashboardData = {
       "関東圏の大学生を中心にテクノロジー・ビジネス・社会課題をテーマとしたプロジェクトを年間15件運営。企業との共創プログラムを通じ、学生の挑戦機会を創出しています。",
     joinCode: "NEXT-5824",
     campus: "首都圏5大学連合",
+    logoUrl: "/logos/organization-next-innovators.svg",
     createdAt: "2021/04/01",
     contacts: {
       representative: "代表：山本 大輝",
@@ -125,6 +131,10 @@ export const mockOrganizationDashboard: OrganizationDashboardData = {
       email: "daiki@next-innovators.jp",
       status: "active",
       lastActive: "15分前",
+      university: "東京大学",
+      faculty: "工学部",
+      department: "情報工学科",
+      grade: 4,
     },
     {
       id: "user-002",
@@ -133,6 +143,10 @@ export const mockOrganizationDashboard: OrganizationDashboardData = {
       email: "nanami@next-innovators.jp",
       status: "active",
       lastActive: "2時間前",
+      university: "早稲田大学",
+      faculty: "商学部",
+      department: "経営学科",
+      grade: 3,
     },
     {
       id: "user-003",
@@ -141,6 +155,10 @@ export const mockOrganizationDashboard: OrganizationDashboardData = {
       email: "sho@next-innovators.jp",
       status: "active",
       lastActive: "5時間前",
+      university: "慶應義塾大学",
+      faculty: "経済学部",
+      department: "経済学科",
+      grade: 3,
     },
     {
       id: "user-004",
@@ -149,6 +167,10 @@ export const mockOrganizationDashboard: OrganizationDashboardData = {
       email: "misaki@next-innovators.jp",
       status: "active",
       lastActive: "昨日",
+      university: "明治大学",
+      faculty: "商学部",
+      department: "会計学科",
+      grade: 2,
     },
     {
       id: "user-005",
@@ -157,6 +179,10 @@ export const mockOrganizationDashboard: OrganizationDashboardData = {
       email: "riku@next-innovators.jp",
       status: "active",
       lastActive: "3日前",
+      university: "一橋大学",
+      faculty: "商学部",
+      department: "経営学科",
+      grade: 1,
     },
   ],
   pendingRequests: [
@@ -167,6 +193,10 @@ export const mockOrganizationDashboard: OrganizationDashboardData = {
       email: "haruna@example.jp",
       status: "pending",
       lastActive: "未認証",
+      university: "東京工業大学",
+      faculty: "工学部",
+      department: "機械工学科",
+      grade: 2,
     },
     {
       id: "user-102",
@@ -175,6 +205,10 @@ export const mockOrganizationDashboard: OrganizationDashboardData = {
       email: "hikari@example.jp",
       status: "pending",
       lastActive: "本人確認中",
+      university: "京都大学",
+      faculty: "工学部",
+      department: "情報学科",
+      grade: 3,
     },
   ],
   sponsorships: [

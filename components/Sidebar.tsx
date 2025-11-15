@@ -1,6 +1,7 @@
 "use client";
 
-import { industryOptions, sponsorshipTypeOptions, regionOptions } from "@/lib/mockData";
+import { getFilters } from "@/lib/api/filters";
+import { useState, useEffect } from "react";
 
 interface SidebarProps {
   selectedIndustries: string[];
@@ -23,6 +24,21 @@ export default function Sidebar({
   isOpen = true,
   onClose,
 }: SidebarProps) {
+  const [filterOptions, setFilterOptions] = useState<{
+    industries: { id: string; label: string }[];
+    sponsorshipTypes: { value: string; label: string }[];
+    regions: { id: string; code: string; name: string }[];
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getFilters()
+      .then(setFilterOptions)
+      .catch((error) => {
+        console.error('フィルタの取得に失敗しました:', error);
+      })
+      .finally(() => setLoading(false));
+  }, []);
   const FilterSection = ({
     title,
     options,
@@ -99,27 +115,35 @@ export default function Sidebar({
         </div>
 
         <div className="p-4">
-        <FilterSection
-          title="エリア"
-          icon="📍"
-          options={regionOptions}
-          selected={selectedRegions}
-          onToggle={onToggleRegion}
-        />
-        <FilterSection
-          title="職種"
-          icon="💼"
-          options={sponsorshipTypeOptions}
-          selected={selectedSponsorshipTypes}
-          onToggle={onToggleSponsorshipType}
-        />
-        <FilterSection
-          title="業種"
-          icon="🏢"
-          options={industryOptions}
-          selected={selectedIndustries}
-          onToggle={onToggleIndustry}
-        />
+        {loading ? (
+          <div className="text-center text-[#666666] py-8">読み込み中...</div>
+        ) : filterOptions ? (
+          <>
+            <FilterSection
+              title="エリア"
+              icon="📍"
+              options={filterOptions.regions.map((r) => r.name)}
+              selected={selectedRegions}
+              onToggle={onToggleRegion}
+            />
+            <FilterSection
+              title="協賛タイプ"
+              icon="💼"
+              options={filterOptions.sponsorshipTypes.map((t) => t.value)}
+              selected={selectedSponsorshipTypes}
+              onToggle={onToggleSponsorshipType}
+            />
+            <FilterSection
+              title="業種"
+              icon="🏢"
+              options={filterOptions.industries.map((i) => i.label)}
+              selected={selectedIndustries}
+              onToggle={onToggleIndustry}
+            />
+          </>
+        ) : (
+          <div className="text-center text-red-600 py-8">フィルタの読み込みに失敗しました</div>
+        )}
       </div>
     </aside>
     </>
