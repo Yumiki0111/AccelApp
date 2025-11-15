@@ -29,7 +29,7 @@ export class GetOrganizationKeptCompaniesUseCase {
     const companies = await this.companyRepository.findByIds(companyIds);
     const companyMap = new Map(companies.map((c) => [c.id, c]));
 
-    return keptCompanies.map((kept) => {
+    return keptCompanies.map((kept: { id: string; companyId: string; keptAt: Date }) => {
       const company = companyMap.get(kept.companyId);
       return {
         id: kept.id,

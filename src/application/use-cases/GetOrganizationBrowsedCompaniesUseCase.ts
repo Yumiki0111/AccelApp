@@ -30,7 +30,7 @@ export class GetOrganizationBrowsedCompaniesUseCase {
     const companies = await this.companyRepository.findByIds(companyIds);
     const companyMap = new Map(companies.map((c) => [c.id, c]));
 
-    return browsedCompanies.map((browsed) => {
+    return browsedCompanies.map((browsed: { id: string; companyId: string; browsedAt: Date }) => {
       const company = companyMap.get(browsed.companyId);
       return {
         id: browsed.id,
